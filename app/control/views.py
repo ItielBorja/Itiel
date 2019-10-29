@@ -2,6 +2,8 @@ from flask import render_template, request, json, Response, send_file, send_from
 from . import control
 import time
 import json
+import socket
+import sys
 import os
 from pathlib import Path
 import zipfile
@@ -10,9 +12,11 @@ from ..car import Car
 from ..camera import Camera
 from ..model import Model
 
+variable ='left'
 @control.route('/drive', methods=['POST'])
 def drive():
-    direction = request.json.get('direction')
+    global variable
+    direction = variable#obtener direccion AKIIIIIII
     car = Car()
     if not Car.connected:
         return json.dumps({ 'error': 'Driving is not connected' })
@@ -121,3 +125,28 @@ def get_folder_zip():
         as_attachment=True,
         attachment_filename='{}.zip'.format(foldername)
     )
+
+
+#socket_echo_server_dgram.py
+
+
+# Create a UDP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# Bind the socket to the port
+server_address = ('198.168.43.105', 2000)
+print('starting up on {} port {}'.format(*server_address))
+sock.bind(server_address)
+
+while True:
+    print('\nwaiting to receive message')
+    data, address = sock.recvfrom(2000)
+
+    print('received {} bytes from {}'.format(
+        len(data), address))
+    print(data)
+    variable=data
+    drive()
+    if data:
+        sent = sock.sendto(data, address)
+        print('sent {} bytes back to {}'.format(sent, address))
