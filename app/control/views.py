@@ -4,6 +4,7 @@ import time
 import json
 import socket
 import sys
+import threading
 import os
 from pathlib import Path
 import zipfile
@@ -129,38 +130,36 @@ def get_folder_zip():
     )
 
 
-#socket_echo_server_dgram.py
+def mainloop(name):
+    global variable
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server_address = ('192.168.43.137', 10000)
+    print('starting up on {} port {}'.format(*server_address))
+    sock.bind(server_address)
+    while True:
+        print('\nwaiting to receive message')
+        data, address = sock.recvfrom(2000)
 
+        print('received {} bytes from {}'.format(
+            len(data), address))
+        print(data)
+        variable=str(data)
+        print(variable)
+        sent = sock.sendto(data, address)
+        print('sent {} bytes back to {}'.format(sent, address))
+        if 'Class' in variable:
+            continue
+        if 'up' in variable:
+            variable='forward'
+        elif 'down' in variable:
+            variable='back'
+        elif 'right' in variable:
+            variable='right'
+        elif 'left' in variable:
+            variable='left'
+        else:
+            variable='stop'
+        drive()
 
-# Create a UDP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-# Bind the socket to the port
-server_address = ('192.168.43.137', 10000)
-print('starting up on {} port {}'.format(*server_address))
-sock.bind(server_address)
-while True:
-    print('\nwaiting to receive message')
-    data, address = sock.recvfrom(2000)
-
-    print('received {} bytes from {}'.format(
-        len(data), address))
-    print(data)
-    variable=str(data)
-    print(variable)
-    sent = sock.sendto(data, address)
-    print('sent {} bytes back to {}'.format(sent, address))
-    if 'Class' in variable:
-        continue
-    if 'up' in variable:
-        variable='forward'
-    elif 'down' in variable:
-        variable='back'
-    elif 'right' in variable:
-        variable='right'
-    elif 'left' in variable:
-        variable='left'
-    else:
-        variable='stop'
-
-    drive()
+x = threading.Thread(target=mainloop, args=(1,))
+x.start()
