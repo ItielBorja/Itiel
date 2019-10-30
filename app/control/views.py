@@ -20,15 +20,17 @@ def drive():
     car = Car()
     if not Car.connected:
         return json.dumps({ 'error': 'Driving is not connected' })
+    if direction not in 'leftrightforwardback':
+        return
 
     camera = Camera()
 
     end_driving = car.drive(direction)
 
-    if Camera.connected and direction != 'stop':
-        folder = request.json.get('foldername', None)
-        label = request.json.get('label', direction)
-        camera.add_label(label, end_driving, folder)
+    #if Camera.connected and direction != 'stop':
+     #   folder = request.json.get('foldername', None)
+      #  label = request.json.get('label', direction)
+       # camera.add_label(label, end_driving, folder)
 
     return json.dumps(True)
 
@@ -134,10 +136,9 @@ def get_folder_zip():
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Bind the socket to the port
-server_address = ('198.168.43.105', 2000)
+server_address = ('192.168.43.137', 10000)
 print('starting up on {} port {}'.format(*server_address))
 sock.bind(server_address)
-
 while True:
     print('\nwaiting to receive message')
     data, address = sock.recvfrom(2000)
@@ -145,8 +146,21 @@ while True:
     print('received {} bytes from {}'.format(
         len(data), address))
     print(data)
-    variable=data
+    variable=str(data)
+    print(variable)
+    sent = sock.sendto(data, address)
+    print('sent {} bytes back to {}'.format(sent, address))
+    if 'Class' in variable:
+        continue
+    if 'up' in variable:
+        variable='forward'
+    elif 'down' in variable:
+        variable='back'
+    elif 'right' in variable:
+        variable='right'
+    elif 'left' in variable:
+        variable='left'
+    else:
+        variable='stop'
+
     drive()
-    if data:
-        sent = sock.sendto(data, address)
-        print('sent {} bytes back to {}'.format(sent, address))
