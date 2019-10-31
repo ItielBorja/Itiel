@@ -18,6 +18,7 @@ variable ='left'
 def drive():
     global variable
     direction = variable#obtener direccion AKIIIIIII
+    #direction = request.json.get('direction')
     car = Car()
     if not Car.connected:
         return json.dumps({ 'error': 'Driving is not connected' })
@@ -27,11 +28,6 @@ def drive():
     camera = Camera()
 
     end_driving = car.drive(direction)
-
-    #if Camera.connected and direction != 'stop':
-     #   folder = request.json.get('foldername', None)
-      #  label = request.json.get('label', direction)
-       # camera.add_label(label, end_driving, folder)
 
     return json.dumps(True)
 
@@ -142,11 +138,9 @@ def mainloop(name):
 
         print('received {} bytes from {}'.format(
             len(data), address))
-        print(data)
         variable=str(data)
         print(variable)
         sent = sock.sendto(data, address)
-        print('sent {} bytes back to {}'.format(sent, address))
         if 'Class' in variable:
             continue
         if 'up' in variable:
